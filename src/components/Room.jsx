@@ -5,7 +5,7 @@ import Peer from "simple-peer";
 import { io } from "socket.io-client";
 
 // Create socket only once outside the component
-const socket = io("https://videoconferencefronend.onrender.com", {
+const socket = io("https://videoconferencingbackend-xkva.onrender.com", {
 // const socket = io("http://localhost:5000", {
   transports: ["websocket"],
 });
