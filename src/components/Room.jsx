@@ -3,12 +3,8 @@ import { useParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import Peer from "simple-peer";
 import { io } from "socket.io-client";
+import socket from "../socket"; // 👈 import singleton
 
-// Create socket only once outside the component
-const socket = io("https://videoconferencingbackend-xkva.onrender.com", {
-// const socket = io("http://localhost:5000", {
-  transports: ["websocket"],
-});
 
 const Room = () => {
   const { roomId } = useParams();
