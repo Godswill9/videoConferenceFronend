@@ -2,33 +2,38 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import Peer from "simple-peer";
-import { io } from "socket.io-client";
-import socket from "./socket"; // 👈 import singleton
-
+import socket from "./socket"; // singleton socket instance
 
 const Room = () => {
   const { roomId } = useParams();
   const [stream, setStream] = useState(null);
+  const [isInitiator, setIsInitiator] = useState(null);
   const myVideo = useRef(null);
   const userVideo = useRef(null);
   const peerRef = useRef(null);
 
   useEffect(() => {
     // Get user media
-    console.log(socket.id)
     navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((currentStream) => {
       setStream(currentStream);
       if (myVideo.current) {
         myVideo.current.srcObject = currentStream;
       }
 
+      // Join room
       socket.emit("join-room", roomId);
-      
+
+      // Backend will tell if we are initiator
+      socket.on("joined-room", ({ initiator }) => {
+        setIsInitiator(initiator);
+      });
 
       socket.on("user-joined", (userId) => {
         console.log("User joined:", userId);
-        const peer = createPeer(userId, socket.id, currentStream);
-        peerRef.current = peer;
+        if (isInitiator && !peerRef.current) {
+          const peer = createPeer(userId, socket.id, currentStream);
+          peerRef.current = peer;
+        }
       });
 
       socket.on("signal", ({ from, data }) => {
@@ -42,9 +47,7 @@ const Room = () => {
 
       socket.on("user-left", () => {
         console.log("Peer disconnected");
-        if (userVideo.current) {
-          userVideo.current.srcObject = null;
-        }
+        if (userVideo.current) userVideo.current.srcObject = null;
         if (peerRef.current) {
           peerRef.current.destroy();
           peerRef.current = null;
@@ -53,15 +56,15 @@ const Room = () => {
     });
 
     return () => {
-      // Cleanup on unmount
       if (peerRef.current) {
         peerRef.current.destroy();
       }
+      socket.off("joined-room");
       socket.off("user-joined");
       socket.off("signal");
       socket.off("user-left");
     };
-  }, [roomId]);
+  }, [roomId, isInitiator]);
 
   const createPeer = (userToSignal, callerId, stream) => {
     const peer = new Peer({
