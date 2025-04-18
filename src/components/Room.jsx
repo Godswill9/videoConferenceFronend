@@ -15,6 +15,7 @@ const Room = () => {
 
   useEffect(() => {
     // Get user media
+    console.log(socket.id)
     navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((currentStream) => {
       setStream(currentStream);
       if (myVideo.current) {
@@ -22,6 +23,7 @@ const Room = () => {
       }
 
       socket.emit("join-room", roomId);
+      
 
       socket.on("user-joined", (userId) => {
         console.log("User joined:", userId);
