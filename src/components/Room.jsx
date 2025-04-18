@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import Peer from "simple-peer";
 import { io } from "socket.io-client";
-import socket from "../socket"; // 👈 import singleton
+import socket from "./socket"; // 👈 import singleton
 
 
 const Room = () => {
